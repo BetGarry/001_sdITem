@@ -1,0 +1,1 @@
+{"scripts":{"build":"webpack"},"dependencies":{"@shapediver/viewer":"^2.6.5","ts-loader":"^9.3.1","webpack":"^5.74.0"},"devDependencies":{"webpack-cli":"^4.10.0"}}
