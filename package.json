@@ -1,1 +1,19 @@
-{"scripts":{"build":"webpack"},"dependencies":{"@shapediver/viewer":"^2.6.5","ts-loader":"^9.3.1","webpack":"^5.74.0"},"devDependencies":{"webpack-cli":"^4.10.0"}}
+{
+  "scripts": {
+    "build": "webpack"
+  },
+  "dependencies": {
+    "@shapediver/viewer": "^2.6.5",
+    "ts-loader": "^9.3.1",
+    "webpack": "^5.74.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^4.10.0"
+  },
+  "name": "br1",
+  "description": "",
+  "version": "1.0.0",
+  "main": "webpack.config.js",
+  "author": "",
+  "license": "ISC"
+}
