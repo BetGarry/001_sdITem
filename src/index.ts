@@ -78,48 +78,6 @@ const update = (settings: IGemMaterialSettings) => {
 const createInitialUi = () => {
   createCustomUi(
     [
-      <IDropdownElement>{
-        tooltip:
-          'The environment map plays a huge role in the rendering of the gemstones. Not only does it provide additional color input, it also adds illumination. This illumination can vary depending on the map that is chosen. Therefore, it might be necessary to adapt other properties when changing the environment map (like gamma, contrast or brightness). The presets are adjusted to the "photo_studio_broadway_hall" map.',
-        key: "environmentMap",
-        name: "Environment Map",
-        type: "dropdown",
-        callback: (value: string) => {
-          let tokenStart: string,
-            tokenEnd: string,
-            tokenCancel: string,
-            taskID: string,
-            busyFlag: string;
-          tokenStart = SDV.addListener(SDV.EVENTTYPE.TASK.TASK_START, (e) => {
-            const taskEvent = <SDV.ITaskEvent>e;
-            if (taskEvent.type === SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING) {
-              taskID = taskEvent.id;
-              //busyFlag = viewport.addFlag(SDV.FLAG_TYPE.BUSY_MODE);
-              SDV.removeListener(tokenStart);
-            }
-          });
-
-          const endCB = (e: SDV.IEvent) => {
-            const taskEvent = <SDV.ITaskEvent>e;
-            if (
-              taskEvent.type === SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING &&
-              taskID === taskEvent.id
-            ) {
-              viewport.update();
-              //viewport.removeFlag(busyFlag);
-              SDV.removeListener(tokenEnd);
-              SDV.removeListener(tokenCancel);
-            }
-          };
-
-          tokenEnd = SDV.addListener(SDV.EVENTTYPE.TASK.TASK_END, endCB);
-          tokenCancel = SDV.addListener(SDV.EVENTTYPE.TASK.TASK_CANCEL, endCB);
-
-          viewport.environmentMap = Object.values(SDV.ENVIRONMENT_MAP)[+value];
-        },
-        choices: Object.values(SDV.ENVIRONMENT_MAP),
-        value: viewport.environmentMap
-      },
       <ISliderElement>{
         tooltip:
           "The refraction index (or refractive index) provides information about the bending of light within the medium.",
@@ -266,7 +224,7 @@ const createInitialUi = () => {
   session = await SDV.createSession({
     id: "mySession",
     ticket:
-      "568f7584578af4744b00abc005c2d6728438881265fc1a9f3cbe61ba50ed51cb88ecc44743819d73796b296cf8656210c87f471147f541216c82f000c6213167e63053b8bf2389e3874c04cace37d879413625c06940ec56c921cd065afd2fb308e9ef0b7f3b843c367a804006bd0fe38e7db3d43a260c43-3036412085067810f1c9d853198afea5",
+      "6d0a5b5f2a81780fbd95e76b59d22ef4b8b970f4580b2a285e1ed4477103a2bf8b50245bcda263c8cb2a32745c12d90a4e0176457c06771dc57e2aeee826903827e7a1ffffdf2bfca6bfa792a0b6882644e5764dc19a3cfc43bcd4811522b487e08fd1b052c684-97a8af03a79e04416cd30af1663e3e89",
     modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com"
   });
 
