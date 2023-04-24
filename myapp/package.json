@@ -1,0 +1,25 @@
+{
+  "name": "myapp",
+  "version": "1.0.0",
+  "description": "ne3d DB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Igor Betenev",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BetGarry/001_sdITem.git"
+  },
+  "keywords": [
+    "ne3d_TST"
+  ],
+  "bugs": {
+    "url": "https://github.com/BetGarry/001_sdITem/issues"
+  },
+  "homepage": "https://github.com/BetGarry/001_sdITem#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
