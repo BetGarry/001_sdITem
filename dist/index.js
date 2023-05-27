@@ -13,50 +13,12 @@ import { container } from "tsyringe";
 import { gems } from "./definitions";
 import { createCustomUi, createParameterUi, updateCustomUi, updateParameterUi } from "./ui";
 window.SDV = SDV;
-const menuLeft = document.getElementById("menu-left");
 const menuRight = document.getElementById("menu-right");
 let session;
 let viewport;
 const materialEngine = (container.resolve(MaterialEngine));
-export const updateGemMaterial = (properties) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const gemMaterialProperties = {};
-    for (let p in properties) {
-        if (p === "impurityMap" && properties.impurityMap) {
-            gemMaterialProperties.impurityMap =
-                (yield materialEngine.loadMap(properties.impurityMap)) ||
-                    undefined;
-        }
-        else {
-            (gemMaterialProperties[p]) = properties[p];
-        }
-    }
-    const outputNames = [
-        "SmallSideDiamonds",
-        "BigSideDiamonds",
-        "BigDiamond",
-        "Gem"
-    ];
-    for (let j = 0; j < outputNames.length; j++) {
-        const output = session
-            .getOutputByName("gemsAll")
-            .find((o) => !o.format.includes("material"));
-        if (!output)
-            continue;
-        output.node.traverse((n) => {
-            console.log(output);
-            for (let i = 0; i < n.data.length; i++) {
-                if (n.data[i] instanceof SDV.GeometryData) {
-                    (n.data[i]).primitive.material = new SDV.MaterialGemData(gemMaterialProperties);
-                }
-            }
-        });
-        (_a = output.node) === null || _a === void 0 ? void 0 : _a.updateVersion();
-    }
-    viewport.update();
-});
+
 const update = (settings) => {
-    updateCustomUi(settings.properties, menuLeft);
     updateParameterUi(settings.parameters, menuRight);
 };
 const createInitialUi = () => {
