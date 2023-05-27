@@ -1,20 +1,10 @@
+import "reflect-metadata";
 import * as SDV from "@shapediver/viewer";
 import { MaterialEngine } from "@shapediver/viewer";
 import { container } from "tsyringe";
-import {
-  gems,
-  IGemMaterialProperties,
-  IGemMaterialSettings
-} from "./definitions";
-import {
-  createCustomUi,
-  createParameterUi,
-  IDropdownElement,
-  ISliderElement,
-  IStringElement,
-  updateCustomUi,
-  updateParameterUi
-} from "./ui";
+import { gems, IGemMaterialProperties, IGemMaterialSettings } from "./definitions";
+import { createCustomUi, createParameterUi, IDropdownElement, ISliderElement, IStringElement, updateCustomUi, updateParameterUi } from "./ui";
+import axios from 'axios';
 
 (<any>window).SDV = SDV;
 
@@ -24,9 +14,12 @@ const menuRight = <HTMLDivElement>document.getElementById("menu-right");
 let session: SDV.ISessionApi;
 let viewport: SDV.IViewportApi;
 
-const materialEngine: MaterialEngine = <MaterialEngine>(
-  container.resolve(MaterialEngine)
-);
+// Add a new array for storing model configurations and a variable for the current model index
+let tickets = [];
+let currentIndex = 0;
+
+
+const materialEngine: MaterialEngine = <MaterialEngine>(container.resolve(MaterialEngine));
 
 export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
   const gemMaterialProperties: SDV.IMaterialGemDataProperties = {};
@@ -59,7 +52,7 @@ export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
         if (n.data[i] instanceof SDV.GeometryData) {
           (<SDV.GeometryData>(
             n.data[i]
-          )).primitive.material = new SDV.MaterialGemData(
+          )).material = new SDV.MaterialGemData(
             gemMaterialProperties
           );
         }
@@ -75,7 +68,9 @@ const update = (settings: IGemMaterialSettings) => {
   updateParameterUi(settings.parameters, menuRight);
 };
 
+
 const createInitialUi = () => {
+ 
   createCustomUi(
     [
       <IDropdownElement>{
@@ -255,7 +250,12 @@ const createInitialUi = () => {
   update(gems["Diamond"]);
 };
 
+const STRAPI_TICKET_URL = "http://localhost:1337/api/shape-diver-configs";
+
+// Modify your asynchronous function to call startSession instead of directly creating the session
 (async () => {
+  const response = await axios.get(STRAPI_TICKET_URL);
+
   viewport = await SDV.createViewport({
     id: "myViewport",
     canvas: <HTMLCanvasElement>document.getElementById("canvas"),
@@ -263,15 +263,61 @@ const createInitialUi = () => {
       backgroundColor: "#374151"
     }
   });
-  session = await SDV.createSession({
-    id: "mySession",
-    ticket:
-      "568f7584578af4744b00abc005c2d6728438881265fc1a9f3cbe61ba50ed51cb88ecc44743819d73796b296cf8656210c87f471147f541216c82f000c6213167e63053b8bf2389e3874c04cace37d879413625c06940ec56c921cd065afd2fb308e9ef0b7f3b843c367a804006bd0fe38e7db3d43a260c43-3036412085067810f1c9d853198afea5",
-    modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com"
-  });
 
-  viewport.clearColor = "#374151";
-
-  createInitialUi();
-  viewport.camera!.zoomTo();
+  // Fetch and start the first session
+  fetchConfigs();
 })();
+
+// New function for fetching the configurations
+const fetchConfigs = async () => {
+  try {
+
+    const response = await axios.get(STRAPI_TICKET_URL);
+    if (response.status === 200) {
+      tickets = response.data.data;
+      console.log(tickets[currentIndex].attributes.ticket);
+      startSession({
+        containerId:"canvas",
+        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+        ticket: tickets[currentIndex].attributes.ticket,
+        waitForOutputs: true
+      }); // start session with first configuration
+    }
+  } catch (error) {
+    console.error('Failed to fetch models', error);
+  }
+}
+
+// New function for starting a new session
+const startSession = async (config) => {
+  // close the previous session if exists
+  if (session) {
+    session.close();
+  }
+
+  session = await SDV.createSession(config);
+  //resetUI();
+  createInitialUi();
+  viewport.update();
+}
+
+// New event listeners for the model-switching buttons
+document.getElementById("prevButton").addEventListener("click", () => {
+  currentIndex = (currentIndex - 1 + tickets.length) % tickets.length;
+  startSession({
+    containerId:"canvas",
+    modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+    ticket: tickets[currentIndex].attributes.ticket,
+    waitForOutputs: true
+  });
+});
+
+document.getElementById("nextButton").addEventListener("click", () => {
+  currentIndex = (currentIndex + 1) % tickets.length;
+  startSession({
+    containerId:"canvas",
+    modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+    ticket: tickets[currentIndex].attributes.ticket,
+    waitForOutputs: true
+  });
+});
