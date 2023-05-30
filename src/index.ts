@@ -35,6 +35,9 @@ export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
     }
   }
 
+
+  
+
   const outputNames = [
     "SmallSideDiamonds",
     "BigSideDiamonds",
@@ -63,6 +66,17 @@ export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
   viewport.update();
 };
 
+const resetUI = () => {
+
+  // Check if there are any child elements in the menus
+  if (menuLeft.hasChildNodes() || menuRight.hasChildNodes()) {
+    // Reset the UI for the menus
+    menuLeft.innerHTML = "";
+    menuRight.innerHTML = "";
+  }
+};
+
+
 const update = (settings: IGemMaterialSettings) => {
   updateCustomUi(settings.properties, menuLeft);
   updateParameterUi(settings.parameters, menuRight);
@@ -70,7 +84,7 @@ const update = (settings: IGemMaterialSettings) => {
 
 
 const createInitialUi = () => {
- 
+
   createCustomUi(
     [
       <IDropdownElement>{
@@ -262,6 +276,10 @@ const STRAPI_TICKET_URL = "http://localhost:1337/api/shape-diver-configs";
     branding: {
       backgroundColor: "#374151"
     }
+
+
+
+    
   });
 
   // Fetch and start the first session
@@ -296,7 +314,7 @@ const startSession = async (config) => {
   }
 
   session = await SDV.createSession(config);
-  //resetUI();
+  resetUI();
   createInitialUi();
   viewport.update();
 }

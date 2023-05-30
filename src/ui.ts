@@ -280,8 +280,9 @@ export const createParameterUi = (
     paramDiv.setAttribute("type", parameterObject.type);
     const label = document.createElement("label");
     label.innerHTML = parameterObject.name;
-    const valueLabel = document.createElement("label");
+    const valueLabel = document.createElement("input");
     valueLabel.setAttribute("name", "valueLabel");
+    valueLabel.setAttribute("type", "input");
 
     let parameterInputElement:
       | HTMLInputElement
@@ -326,6 +327,7 @@ export const createParameterUi = (
       div.appendChild(label);
       div.appendChild(valueLabel);
       paramDiv.appendChild(div);
+      paramDiv.appendChild(parameterInputElement);
 
       if (parameterObject.type === PARAMETER_TYPE.INT)
         parameterInputElement.setAttribute("step", "1");
@@ -397,6 +399,7 @@ export const createParameterUi = (
           parameterObject.type === PARAMETER_TYPE.BOOL
             ? (<HTMLInputElement>parameterInputElement).checked
             : parameterInputElement!.value;
+          valueLabel.innerHTML = parameterObject.value;
         await session.customize();
         viewports["myViewport"].update();
 
