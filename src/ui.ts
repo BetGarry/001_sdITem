@@ -1,12 +1,16 @@
 import {
   ENVIRONMENT_MAP,
   IMaterialGemDataProperties,
+  IViewportApi,
   ISessionApi,
   PARAMETER_TYPE,
   viewports
 } from "@shapediver/viewer";
-import { updateGemMaterial } from "./index";
-import { IGemMaterialProperties } from "./definitions";
+import { updateGemMaterial, updateRenderSettings } from "./index";
+import { IGemMaterialProperties, IRenderProperties, IRenderSettings } from "./definitions";
+import { Type } from "typescript";
+
+
 
 let gemDefinition: IGemMaterialProperties = {
   environmentMap: ENVIRONMENT_MAP.PHOTO_STUDIO,
@@ -23,6 +27,15 @@ let gemDefinition: IGemMaterialProperties = {
   tracingOpacity: 0.25
 };
 
+let renderDefinition: IRenderProperties = {
+  ambientOcclusion: true,
+	ambientOcclusionIntensity: 0.5,
+  clearAlpha: 0,
+	environmentMap: "https://3dvestuviniai.lt/assets/images/HDRI/ornament2/",
+  toneMapping: "none",
+  toneMappingExposure: 0.75
+};
+
 export interface IUiElement {
   key?: keyof IGemMaterialProperties;
   name: string;
@@ -30,13 +43,12 @@ export interface IUiElement {
   tooltip?: string;
   callback: (value: any) => void;
 }
-
 export interface ISliderElement extends IUiElement {
   type: "slider";
   min: number;
   max: number;
   step: number;
-  value: number;
+  value?: number;
 }
 export interface IDropdownElement extends IUiElement {
   type: "dropdown";
@@ -47,6 +59,39 @@ export interface IStringElement extends IUiElement {
   type: "string";
   value: string;
 }
+
+export interface IRenderElement {
+  key?: keyof IRenderProperties;
+  name: string;
+  type: any;
+  value?: any;
+  tooltip?: string;
+  callback: (value: any) => void;
+}
+
+export interface ICheckboxElement extends IRenderElement {
+  type: "checkbox";
+  // Default value for the checkbox
+  value?: boolean;
+  // Callback function for when the checkbox value changes
+}
+
+export interface ISliderElement2 extends IRenderElement {
+  type: "slider";
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+}
+export interface IDropdownElement2 extends IRenderElement {
+  type: "dropdown";
+  choices: string[];
+  value: string;
+}
+export interface IStringElement2 extends IRenderElement {
+  type: "string";
+  value: string;
+};
 
 export const updateCustomUi = (
   dev: IGemMaterialProperties,
@@ -94,7 +139,63 @@ export const updateCustomUi = (
     }
   }
   updateGemMaterial(dev);
+  console.log('hi0');
 };
+
+export const updateCustomUi2 = (
+  renderProp: IRenderProperties,
+  parent: HTMLDivElement
+) => {
+  for (let p in renderProp) {
+    (<any>renderDefinition[<keyof IRenderProperties>p]) = renderProp[
+      <keyof IRenderProperties>p
+    ];
+
+    const paramDiv = <HTMLDivElement>parent.querySelector("[name=" + p + "]");
+    const paramType = paramDiv.getAttribute("type");
+
+    if (paramType === "slider") {
+      const inputElement = <HTMLInputElement>(
+        paramDiv.querySelector('[name="inputElement"]')
+      );
+      const valueLabel = <HTMLLabelElement>(
+        paramDiv.querySelector('[name="valueLabel"]')
+      );
+      inputElement.value = renderProp[<keyof IRenderProperties>p] + "";
+      valueLabel.innerHTML = renderProp[<keyof IRenderProperties>p] + "";
+    } else if (paramType === "dropdown") {
+      const inputElement = <HTMLSelectElement>(
+        paramDiv.querySelector('[name="inputElement"]')
+      );
+      const valueIndex = Object.values(ENVIRONMENT_MAP).indexOf(
+        <ENVIRONMENT_MAP>(
+          (<string>renderDefinition[<keyof IRenderProperties>p])
+        )
+      );
+      (<HTMLOptionElement>inputElement.childNodes[valueIndex]).setAttribute(
+        "selected",
+        ""
+      );
+      inputElement.onchange!(new Event("custom"));
+    } else if (paramType === "string") {
+      const inputElement = <HTMLInputElement>(
+        paramDiv.querySelector('[name="inputElement"]')
+      );
+      inputElement.value =
+        renderProp[<keyof IRenderProperties>p] === undefined
+          ? ""
+          : renderProp[<keyof IRenderProperties>p] + "";
+    } else if (paramType === "checkbox") {
+      const inputElement = <HTMLInputElement>(
+        paramDiv.querySelector('[name="inputElement"]')
+      );
+      inputElement.checked =
+        renderProp[<keyof IRenderProperties>p] === true ? true : false;
+    }
+  }
+  updateRenderSettings(renderProp);
+};
+
 
 export const createCustomUi = (
   elements: IUiElement[],
@@ -191,7 +292,7 @@ export const createCustomUi = (
       inputElement.setAttribute("name", "inputElement");
       inputElement.setAttribute("type", "text");
       const value = menuElement.key
-        ? <string>gemDefinition[menuElement.key]
+        ? <string>renderDefinition[menuElement.key]
         : (<IStringElement>menuElement).value;
       inputElement.setAttribute("value", value === undefined ? "" : value);
       inputElement.classList.value =
@@ -204,7 +305,7 @@ export const createCustomUi = (
 
       inputElement.onchange = () => {
         if (menuElement.key)
-          (<string>gemDefinition[menuElement.key]) = inputElement!.value;
+          (<string>renderDefinition[menuElement.key]) = inputElement!.value;
         updateGemMaterial(gemDefinition);
         if (menuElement.callback) menuElement.callback(inputElement!.value);
       };
@@ -217,6 +318,72 @@ export const createCustomUi = (
     }
   }
   updateGemMaterial(gemDefinition);
+};
+
+export const createCustomUi2 = (
+  settings: IRenderElement,
+  parent: HTMLDivElement
+) => {
+  for (let p in settings) {
+    (<any>renderDefinition[<keyof IRenderElement>p]) = settings[
+      <keyof IRenderElement>p
+    ];
+
+    const paramDiv = <HTMLDivElement>parent.querySelector("[name=" + p + "]");
+    const paramType = paramDiv.getAttribute("type");
+
+    if (paramType === "slider") {
+      const inputElement = <HTMLInputElement>(
+        paramDiv.querySelector('[name="inputElement"]')
+      );
+      const valueLabel = <HTMLLabelElement>(
+        paramDiv.querySelector('[name="valueLabel"]')
+      );
+      inputElement.value = settings[<keyof IRenderElement>p] + "";
+      valueLabel.innerHTML = settings[<keyof IRenderElement>p] + "";
+
+      inputElement.onchange = () => {
+        if (p)
+          (<string>renderDefinition[p]) = inputElement!.value;
+        updateRenderSettings(renderDefinition);
+      };
+      
+    } else if (paramType === "dropdown") {
+      const inputElement = <HTMLSelectElement>(
+        paramDiv.querySelector('[name="inputElement"]')
+      );
+      const valueIndex = Object.values(viewports.toneMapping).indexOf(
+        <IViewportApi["toneMapping"]>(
+          (<string>renderDefinition[<keyof IRenderElement>p])
+        )
+      );
+      (<HTMLOptionElement>inputElement.childNodes[valueIndex]).setAttribute(
+        "selected",
+        ""
+      );
+      
+      inputElement.onchange = () => {
+        if (p)
+          (<string>renderDefinition[p]) = inputElement!.value;
+        updateRenderSettings(renderDefinition);
+      };
+      
+    } else if (paramType === "string" || paramType === "boolean") {
+      const inputElement = <HTMLInputElement>(
+        paramDiv.querySelector('[name="inputElement"]')
+      );
+      inputElement.value =
+        settings[<keyof IRenderSettings>p] === undefined
+          ? ""
+          : settings[<keyof IRenderSettings>p] + "";
+          
+      inputElement.onchange = () => {
+        if (p)
+          (<string>renderDefinition[p]) = inputElement!.value;
+        updateRenderSettings(renderDefinition);
+      };
+    }
+  }
 };
 
 export const updateParameterUi = (
@@ -282,7 +449,7 @@ export const createParameterUi = (
     label.innerHTML = parameterObject.name;
     const valueLabel = document.createElement("input");
     valueLabel.setAttribute("name", "valueLabel");
-    valueLabel.setAttribute("type", "input");
+    valueLabel.setAttribute("type", "label");
 
     let parameterInputElement:
       | HTMLInputElement

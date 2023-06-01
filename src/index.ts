@@ -2,8 +2,8 @@ import "reflect-metadata";
 import * as SDV from "@shapediver/viewer";
 import { MaterialEngine } from "@shapediver/viewer";
 import { container } from "tsyringe";
-import { gems, IGemMaterialProperties, IGemMaterialSettings } from "./definitions";
-import { createCustomUi, createParameterUi, IDropdownElement, ISliderElement, IStringElement, updateCustomUi, updateParameterUi } from "./ui";
+import { gems, viewSetups, IGemMaterialProperties, IGemMaterialSettings, IRenderProperties, IRenderSettings  } from "./definitions";
+import { createCustomUi, createParameterUi, createCustomUi2, IDropdownElement, ISliderElement, IStringElement, IDropdownElement2, ISliderElement2, IStringElement2, updateCustomUi, updateCustomUi2, updateParameterUi, ICheckboxElement } from "./ui";
 import axios from 'axios';
 
 (<any>window).SDV = SDV;
@@ -33,10 +33,7 @@ export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
         gemMaterialProperties[<keyof SDV.IMaterialGemDataProperties>p]
       )) = properties[<keyof IGemMaterialProperties>p];
     }
-  }
-
-
-  
+  }; 
 
   const outputNames = [
     "SmallSideDiamonds",
@@ -66,6 +63,16 @@ export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
   viewport.update();
 };
 
+
+export const updateRenderSettings = (
+  settings: IRenderProperties
+) => {
+  for (let p in settings) {
+    viewport = settings[p];
+  }
+  viewport.update();
+};
+
 const resetUI = () => {
 
   // Check if there are any child elements in the menus
@@ -76,16 +83,60 @@ const resetUI = () => {
   }
 };
 
+const createSubMenu = (
+  title: string,
+  elements: Array<IDropdownElement | ISliderElement | IStringElement >,
+  parentMenu: HTMLDivElement
+) => {
+  const subMenu = document.createElement('div');
+  subMenu.classList.add('sub-menu');
+
+  const subMenuTitle = document.createElement('h2');
+  subMenuTitle.textContent = title;
+
+  subMenu.appendChild(subMenuTitle);
+
+  createCustomUi(elements, subMenu);
+  parentMenu.appendChild(subMenu);
+};
+const createSubMenu2 = (
+  title: string,
+  elements: Array<ICheckboxElement | ISliderElement2 | IStringElement2 | IDropdownElement2>,
+  parentMenu: HTMLDivElement
+) => {
+  const subMenu = document.createElement('div');
+  subMenu.classList.add('sub-menu');
+
+  const subMenuTitle = document.createElement('h2');
+  subMenuTitle.textContent = title;
+
+  subMenu.appendChild(subMenuTitle);
+
+  elements.forEach(element => createCustomUi2(element, subMenu));
+
+  parentMenu.appendChild(subMenu);
+};
+
 
 const update = (settings: IGemMaterialSettings) => {
+  console.log('hi');
   updateCustomUi(settings.properties, menuLeft);
+  console.log('hi0');
   updateParameterUi(settings.parameters, menuRight);
+
+};
+const update2 = (settings: IRenderSettings) => {
+  updateCustomUi2(settings.properties, menuLeft);
+  console.log('hi2');
 };
 
 
 const createInitialUi = () => {
+  // Clear existing menus
 
-  createCustomUi(
+  // Gem material properties
+  createSubMenu(
+    'Gem Material',
     [
       <IDropdownElement>{
         tooltip:
@@ -229,8 +280,89 @@ const createInitialUi = () => {
       }
     ],
     menuLeft
-    );
-    console.log ("i`m here?");
+  );
+    // Render properties
+  createSubMenu2( 
+    'Render Properties',
+  [
+        <ICheckboxElement>{
+        name: "Ambient Occlusion",
+        tooltip: 'Ambient occlusion.',
+        key: "ambientOcclusion",
+        type:"checkbox",
+        callback: (value: boolean) => {
+          viewport.ambientOcclusion = value;
+        },
+        value: viewport.ambientOcclusion,
+
+      },
+        <ISliderElement2>{
+        tooltip: 'Ambient occlusion intensity.',
+        key: "ambientOcclusionIntensity",
+        name: "Ambient Occlusion Intensity",
+        type: "slider",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        callback: (value: number) => {
+          viewport.ambientOcclusionIntensity = value;
+        },
+        value: viewport.ambientOcclusionIntensity,
+
+      },
+        <ISliderElement2>{
+          tooltip: "Adjust the clear alpha value.",
+          key: "clearAlpha",
+          name: "Clear Alpha",
+          type: "slider",
+          min: 0,
+          max: 1,
+          step: 0.01,
+          callback: (value: number) => {
+            viewport.clearAlpha = value;
+          },
+          value: viewport.clearAlpha
+
+        },
+        <IStringElement2>{
+          tooltip: "Specify the environment map.",
+          key: "environmentMap",
+          name: "Environment Map",
+          type: "string", 
+          callback: (value: string) => {
+            viewport.environmentMap = viewport.environmentMap[value];
+          },
+          value: viewport.environmentMap
+        },
+
+        <IDropdownElement2>{
+          tooltip: 'Select the tone mapping method.',
+          key: "toneMapping",
+          name: "Tone Mapping",
+          type: "dropdown",
+          choices: ["aces_filmis", "cineon", "linear", "none", "reinhard"],
+          callback: (value: string) => {
+            viewport.toneMapping = viewport.toneMapping[value];
+          },
+        },
+        <ISliderElement2>{
+          tooltip: 'Select the tone mapping exposure level.',
+          key: "toneMappingExposure",
+          name: "Tone Mapping Exposure",
+          type: "slider",
+          min: 0,
+          max: 1,
+          step: 0.01,
+          value:viewport.toneMappingExposure,
+          callback: (value: number) => {
+            viewport.toneMappingExposure = viewport.toneMappingExposure[value];
+          }
+          },
+  ],
+  menuLeft
+  );
+
+  console.log ("i`m here?");
 
   createCustomUi(
     [
@@ -262,6 +394,8 @@ const createInitialUi = () => {
 
   createParameterUi(session, menuRight);
   update(gems["Diamond"]);
+  console.log('hi');
+  update2(viewSetups["default"])
 };
 
 const STRAPI_TICKET_URL = "http://localhost:1337/api/shape-diver-configs";
@@ -277,9 +411,6 @@ const STRAPI_TICKET_URL = "http://localhost:1337/api/shape-diver-configs";
       backgroundColor: "#374151"
     }
 
-
-
-    
   });
 
   // Fetch and start the first session
