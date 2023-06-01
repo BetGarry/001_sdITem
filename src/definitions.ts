@@ -15,11 +15,37 @@ export interface IGemMaterialProperties {
   tracingDepth: number,
   tracingOpacity: number,
 }
-
+export interface IRenderProperties {   
+  ambientOcclusion: boolean,
+	ambientOcclusionIntensity: number,
+  clearAlpha: number,
+	environmentMap: string | string[],
+  toneMapping: string,
+  toneMappingExposure: number
+}
+export interface IRenderSettings {
+  properties: IRenderProperties,
+  parameters: { [key: string]: string }
+}
 export interface IGemMaterialSettings {
   properties: IGemMaterialProperties,
   parameters: { [key: string]: string }
+};
+
+const viewSetup = {
+  properties: {    
+    ambientOcclusion: true,
+    ambientOcclusionIntensity: 0.5,
+    clearAlpha: 1,
+    environmentMap: 'https://3dvestuviniai.lt/assets/images/HDRI/ornament2/',
+    toneMapping: 'none',
+    toneMappingExposure: 0.75
+  },
+  parameters: {
 }
+};
+
+console.log('hi2');
 
 const diamondSettings = {
   properties: {    
@@ -122,4 +148,7 @@ export const gems = {
   "Ruby": rubySettings,
   "Emerald": emeraldSettings,
   "Sapphire": sapphireSettings
+}
+export const viewSetups = {
+  "default": viewSetup
 }

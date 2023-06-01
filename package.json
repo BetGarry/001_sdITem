@@ -5,13 +5,15 @@
   "dependencies": {
     "@shapediver/viewer": "^2.9.0",
     "axios": "^1.4.0",
+    "html-webpack-plugin": "^5.5.1",
     "reflect-metadata": "^0.1.13",
     "ts-loader": "^9.3.1",
     "tsyringe": "^4.7.0"
   },
   "devDependencies": {
     "webpack": "^5.84.0",
-    "webpack-cli": "^4.10.0"
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.15.0"
   },
   "name": "br1",
   "description": "",
