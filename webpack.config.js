@@ -1,7 +1,9 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: './src/index.ts',
   mode: 'production',
+  target: 'web',
   module: {
     rules: [{
       test: /\.tsx?$/,
@@ -9,6 +11,11 @@ module.exports = {
       exclude: /node_modules/,
     }],
   },
+  plugins: [    
+    new HtmlWebpackPlugin({
+      template: './index.html',
+    })
+  ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js']
   },
