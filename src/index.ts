@@ -285,6 +285,7 @@ const createInitialUi = () => {
         callback: (value: number) => {
           viewport.ambientOcclusionIntensity = Number(value);
         },
+        value: viewport.ambientOcclusionIntensity,
 
       },
         <ISliderElement>{
@@ -417,14 +418,13 @@ const createInitialUi = () => {
 
 };
 const PRESETS_URL = "http://localhost:1337/api/presets"
-
 const STRAPI_TICKET_URL = "http://localhost:1337/api/shape-diver-configs";
 let presets = [];
 // Modify your asynchronous function to call startSession instead of directly creating the session
 (async () => {
   //const response = await axios.get(STRAPI_TICKET_URL);
-  //const _presets = (await axios.get(PRESETS_URL));
-  //presets = _presets.data.data.map(d => d.attributes.json);
+  const _presets = (await axios.get(PRESETS_URL));
+  presets = _presets.data.data.map(d => d.attributes.json);
   viewport = await SDV.createViewport({
     id: "myViewport",
     canvas: <HTMLCanvasElement>document.getElementById("canvas"),
@@ -441,16 +441,16 @@ let presets = [];
 const fetchConfigs = async () => {
   try {
 
-    const response = {"data":[{"id":3,"attributes":{"createdAt":"2023-05-26T14:22:25.383Z","updatedAt":"2023-05-27T14:52:23.077Z","publishedAt":"2023-05-26T14:22:26.165Z","ticket":"28174ad39b4d19f093f86e1648d97d4ed64587210675195025c235680ad83c6ded51bc13ada77d49ef6bcc9a5e2ca544417912c15f081930e8d42333aaa0e9f248fcee79dd005f9abb29915e8f1bcb4f4eed05d1d462c5c625ec0f8d483df15e8c1569c26744f9-4035a61f695de00791566af9e5a26e3f"}},{"id":4,"attributes":{"createdAt":"2023-05-26T17:23:56.892Z","updatedAt":"2023-05-27T14:52:35.357Z","publishedAt":"2023-05-26T17:23:57.799Z","ticket":"4320b6c49cf1c703139275e5c66bcddae6cb8e5fc2a2973f78f20c22267f4b00e42d9dbd59df60006cb373bc4c5225c3ce73a17a0c3c8bb13d74d3ff0e0fe13bb257f8ff986a540d9ed83a5b6106ccb541e911a3df936dc89f15fd54c1b54eaa18f5137c89aed4-e87f156a0a5374c169f86a69eec42fdd"}},{"id":5,"attributes":{"createdAt":"2023-05-26T17:27:02.012Z","updatedAt":"2023-05-27T14:52:50.333Z","publishedAt":"2023-05-26T17:27:02.753Z","ticket":"51aa8c5fe770a5bfcb9884a1104bf308441bc340931854c8979cb9acb4f28e8d79d9683cd3dede278cf440a5f4f2918eb59767571f82870e3c91324b2d01c17aff0575f5e7234ab7e58f8c8c9cfc8fe54dede80ed64192ab97261196f06b59c05abed9716c99cb-96c5eeeff94b9214a60fd186ecc4dcfb"}}],"meta":{"pagination":{"page":1,"pageSize":25,"pageCount":1,"total":3}}}
-    //if (response.status === 200) {
-      tickets = response.data;
+    const response = await axios.get(STRAPI_TICKET_URL);
+    if (response.status === 200) {
+      tickets = response.data.data;
       startSession({
         containerId:"canvas",
         modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
         ticket: tickets[currentIndex].attributes.ticket,
         waitForOutputs: true
       }); // start session with first configuration
-    //}
+    }
   } catch (error) {
     console.error('Failed to fetch models', error);
   }
