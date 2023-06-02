@@ -33,11 +33,12 @@ let renderDefinition: IRenderProperties = {
   clearAlpha: 0,
 	environmentMap: "https://3dvestuviniai.lt/assets/images/HDRI/ornament2/",
   toneMapping: "none",
-  toneMappingExposure: 0.75
+  toneMappingExposure: 0.75,
+  preset: ''
 };
 
 export interface IUiElement {
-  key?: keyof IGemMaterialProperties;
+  key?: keyof IGemMaterialProperties | keyof IRenderProperties;
   name: string;
   type: string;
   tooltip?: string;
@@ -60,38 +61,12 @@ export interface IStringElement extends IUiElement {
   value: string;
 }
 
-export interface IRenderElement {
-  key?: keyof IRenderProperties;
-  name: string;
-  type: any;
-  value?: any;
-  tooltip?: string;
-  callback: (value: any) => void;
-}
-
-export interface ICheckboxElement extends IRenderElement {
+export interface ICheckboxElement extends IUiElement {
   type: "checkbox";
   // Default value for the checkbox
   value?: boolean;
   // Callback function for when the checkbox value changes
 }
-
-export interface ISliderElement2 extends IRenderElement {
-  type: "slider";
-  min: number;
-  max: number;
-  step: number;
-  value: number;
-}
-export interface IDropdownElement2 extends IRenderElement {
-  type: "dropdown";
-  choices: string[];
-  value: string;
-}
-export interface IStringElement2 extends IRenderElement {
-  type: "string";
-  value: string;
-};
 
 export const updateCustomUi = (
   dev: IGemMaterialProperties,
@@ -139,7 +114,6 @@ export const updateCustomUi = (
     }
   }
   updateGemMaterial(dev);
-  console.log('hi0');
 };
 
 export const updateCustomUi2 = (
@@ -203,13 +177,12 @@ export const createCustomUi = (
 ) => {
   for (let i = 0; i < elements.length; i++) {
     const menuElement = elements[i];
-
     const paramDiv = document.createElement("div");
     if (menuElement.tooltip)
       paramDiv.setAttribute("title", menuElement.tooltip);
 
     if (menuElement.key) paramDiv.setAttribute("name", menuElement.key);
-    paramDiv.setAttribute("type", menuElement.type);
+    //paramDiv.setAttribute("type", menuElement.type);
     const label = document.createElement("label");
     const valueLabel = document.createElement("label");
     valueLabel.setAttribute("name", "valueLabel");
@@ -309,6 +282,30 @@ export const createCustomUi = (
         updateGemMaterial(gemDefinition);
         if (menuElement.callback) menuElement.callback(inputElement!.value);
       };
+    } else if (menuElement.type === "checkbox") {
+      inputElement = <HTMLInputElement>document.createElement("input") as HTMLInputElement;
+      inputElement.setAttribute("name", "inputElement");
+      inputElement.setAttribute("type", "checkbox");
+      const value = menuElement.key
+        ? <string>renderDefinition[menuElement.key]
+        : (<IStringElement>menuElement).value;
+      //inputElement.setAttribute("value", value === undefined ? "" : value);
+      inputElement.classList.value =
+        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+      label.classList.value =
+        "block mb-2 mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
+
+      paramDiv.appendChild(label);
+      paramDiv.appendChild(inputElement);
+
+      inputElement.onchange = () => {
+        if (inputElement instanceof HTMLInputElement) {
+          if (menuElement.key)
+            (renderDefinition[menuElement.key]) = inputElement!.checked;
+          updateGemMaterial(gemDefinition);
+          if (menuElement.callback) menuElement.callback(inputElement!.checked);
+        };
+      }
     }
 
     if (inputElement) {
@@ -320,71 +317,6 @@ export const createCustomUi = (
   updateGemMaterial(gemDefinition);
 };
 
-export const createCustomUi2 = (
-  settings: IRenderElement,
-  parent: HTMLDivElement
-) => {
-  for (let p in settings) {
-    (<any>renderDefinition[<keyof IRenderElement>p]) = settings[
-      <keyof IRenderElement>p
-    ];
-
-    const paramDiv = <HTMLDivElement>parent.querySelector("[name=" + p + "]");
-    const paramType = paramDiv.getAttribute("type");
-
-    if (paramType === "slider") {
-      const inputElement = <HTMLInputElement>(
-        paramDiv.querySelector('[name="inputElement"]')
-      );
-      const valueLabel = <HTMLLabelElement>(
-        paramDiv.querySelector('[name="valueLabel"]')
-      );
-      inputElement.value = settings[<keyof IRenderElement>p] + "";
-      valueLabel.innerHTML = settings[<keyof IRenderElement>p] + "";
-
-      inputElement.onchange = () => {
-        if (p)
-          (<string>renderDefinition[p]) = inputElement!.value;
-        updateRenderSettings(renderDefinition);
-      };
-      
-    } else if (paramType === "dropdown") {
-      const inputElement = <HTMLSelectElement>(
-        paramDiv.querySelector('[name="inputElement"]')
-      );
-      const valueIndex = Object.values(viewports.toneMapping).indexOf(
-        <IViewportApi["toneMapping"]>(
-          (<string>renderDefinition[<keyof IRenderElement>p])
-        )
-      );
-      (<HTMLOptionElement>inputElement.childNodes[valueIndex]).setAttribute(
-        "selected",
-        ""
-      );
-      
-      inputElement.onchange = () => {
-        if (p)
-          (<string>renderDefinition[p]) = inputElement!.value;
-        updateRenderSettings(renderDefinition);
-      };
-      
-    } else if (paramType === "string" || paramType === "boolean") {
-      const inputElement = <HTMLInputElement>(
-        paramDiv.querySelector('[name="inputElement"]')
-      );
-      inputElement.value =
-        settings[<keyof IRenderSettings>p] === undefined
-          ? ""
-          : settings[<keyof IRenderSettings>p] + "";
-          
-      inputElement.onchange = () => {
-        if (p)
-          (<string>renderDefinition[p]) = inputElement!.value;
-        updateRenderSettings(renderDefinition);
-      };
-    }
-  }
-};
 
 export const updateParameterUi = (
   parameters: { [key: string]: string },

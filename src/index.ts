@@ -3,7 +3,7 @@ import * as SDV from "@shapediver/viewer";
 import { MaterialEngine } from "@shapediver/viewer";
 import { container } from "tsyringe";
 import { gems, viewSetups, IGemMaterialProperties, IGemMaterialSettings, IRenderProperties, IRenderSettings  } from "./definitions";
-import { createCustomUi, createParameterUi, createCustomUi2, IDropdownElement, ISliderElement, IStringElement, IDropdownElement2, ISliderElement2, IStringElement2, updateCustomUi, updateCustomUi2, updateParameterUi, ICheckboxElement } from "./ui";
+import { createCustomUi, createParameterUi, IDropdownElement, ISliderElement, IStringElement, updateCustomUi, updateParameterUi, ICheckboxElement } from "./ui";
 import axios from 'axios';
 
 (<any>window).SDV = SDV;
@@ -18,7 +18,10 @@ let viewport: SDV.IViewportApi;
 let tickets = [];
 let currentIndex = 0;
 
-
+const hdrMaps = [
+  "https://ne3d.lt/wp-content/uploads/HDRs/new2/",
+  "https://ne3d.lt/wp-content/uploads/HDRs/new2/"
+];
 const materialEngine: MaterialEngine = <MaterialEngine>(container.resolve(MaterialEngine));
 
 export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
@@ -47,7 +50,7 @@ export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
       .find((o) => !o.format.includes("material"));
     if (!output) continue;
     output.node!.traverse((n) => {
-      console.log(output);
+      //console.log(output);
       for (let i = 0; i < n.data.length; i++) {
         if (n.data[i] instanceof SDV.GeometryData) {
           (<SDV.GeometryData>(
@@ -85,7 +88,7 @@ const resetUI = () => {
 
 const createSubMenu = (
   title: string,
-  elements: Array<IDropdownElement | ISliderElement | IStringElement >,
+  elements: Array<IDropdownElement | ISliderElement | IStringElement | ICheckboxElement>,
   parentMenu: HTMLDivElement
 ) => {
   const subMenu = document.createElement('div');
@@ -99,40 +102,15 @@ const createSubMenu = (
   createCustomUi(elements, subMenu);
   parentMenu.appendChild(subMenu);
 };
-const createSubMenu2 = (
-  title: string,
-  elements: Array<ICheckboxElement | ISliderElement2 | IStringElement2 | IDropdownElement2>,
-  parentMenu: HTMLDivElement
-) => {
-  const subMenu = document.createElement('div');
-  subMenu.classList.add('sub-menu');
-
-  const subMenuTitle = document.createElement('h2');
-  subMenuTitle.textContent = title;
-
-  subMenu.appendChild(subMenuTitle);
-
-  elements.forEach(element => createCustomUi2(element, subMenu));
-
-  parentMenu.appendChild(subMenu);
-};
-
 
 const update = (settings: IGemMaterialSettings) => {
-  console.log('hi');
   updateCustomUi(settings.properties, menuLeft);
-  console.log('hi0');
   updateParameterUi(settings.parameters, menuRight);
 
-};
-const update2 = (settings: IRenderSettings) => {
-  updateCustomUi2(settings.properties, menuLeft);
-  console.log('hi2');
 };
 
 
 const createInitialUi = () => {
-  // Clear existing menus
 
   // Gem material properties
   createSubMenu(
@@ -282,7 +260,7 @@ const createInitialUi = () => {
     menuLeft
   );
     // Render properties
-  createSubMenu2( 
+  createSubMenu( 
     'Render Properties',
   [
         <ICheckboxElement>{
@@ -296,7 +274,7 @@ const createInitialUi = () => {
         value: viewport.ambientOcclusion,
 
       },
-        <ISliderElement2>{
+        <ISliderElement>{
         tooltip: 'Ambient occlusion intensity.',
         key: "ambientOcclusionIntensity",
         name: "Ambient Occlusion Intensity",
@@ -305,12 +283,12 @@ const createInitialUi = () => {
         max: 1,
         step: 0.01,
         callback: (value: number) => {
-          viewport.ambientOcclusionIntensity = value;
+          viewport.ambientOcclusionIntensity = Number(value);
         },
         value: viewport.ambientOcclusionIntensity,
 
       },
-        <ISliderElement2>{
+        <ISliderElement>{
           tooltip: "Adjust the clear alpha value.",
           key: "clearAlpha",
           name: "Clear Alpha",
@@ -319,33 +297,34 @@ const createInitialUi = () => {
           max: 1,
           step: 0.01,
           callback: (value: number) => {
-            viewport.clearAlpha = value;
+            viewport.clearAlpha = Number(value);
           },
           value: viewport.clearAlpha
 
         },
-        <IStringElement2>{
+        <IDropdownElement>{
           tooltip: "Specify the environment map.",
           key: "environmentMap",
           name: "Environment Map",
-          type: "string", 
+          type: "dropdown",
+          choices: hdrMaps, 
           callback: (value: string) => {
-            viewport.environmentMap = viewport.environmentMap[value];
+            viewport.environmentMap = hdrMaps[value];
           },
           value: viewport.environmentMap
         },
 
-        <IDropdownElement2>{
+        <IDropdownElement>{
           tooltip: 'Select the tone mapping method.',
           key: "toneMapping",
           name: "Tone Mapping",
           type: "dropdown",
-          choices: ["aces_filmis", "cineon", "linear", "none", "reinhard"],
+          choices: Object.values(SDV.TONE_MAPPING),
           callback: (value: string) => {
-            viewport.toneMapping = viewport.toneMapping[value];
+            viewport.toneMapping = Object.values(SDV.TONE_MAPPING)[value];
           },
         },
-        <ISliderElement2>{
+        <ISliderElement>{
           tooltip: 'Select the tone mapping exposure level.',
           key: "toneMappingExposure",
           name: "Tone Mapping Exposure",
@@ -355,14 +334,24 @@ const createInitialUi = () => {
           step: 0.01,
           value:viewport.toneMappingExposure,
           callback: (value: number) => {
-            viewport.toneMappingExposure = viewport.toneMappingExposure[value];
+            viewport.toneMappingExposure = Number(value);
           }
           },
+          /*<IDropdownElement>{
+            value: '',
+            tooltip: 'Select the tone mapping method.',
+            key: "preset",
+            name: "Preset",
+            type: "dropdown",
+            choices: [""],
+            callback: (value: string) => {
+              //viewport.toneMapping = Object.values(SDV.TONE_MAPPING)[value];
+            },
+          },*/
   ],
   menuLeft
   );
 
-  console.log ("i`m here?");
 
   createCustomUi(
     [
@@ -393,17 +382,49 @@ const createInitialUi = () => {
   );
 
   createParameterUi(session, menuRight);
-  update(gems["Diamond"]);
-  console.log('hi');
-  update2(viewSetups["default"])
+  //update(gems["Diamond"]);
+  //update2(viewSetups["default"])
+
+  
+  const saveButton = document.createElement('input');
+  saveButton.setAttribute('type', 'button')
+  saveButton.innerHTML = 'Save'
+  saveButton.setAttribute('value', 'Save')
+  
+  saveButton.onclick = () => {
+    axios.post("http://localhost:1337/api/presets", {
+      data: {json: viewport.getViewportSettings(),}
+    })
+  }
+  document.querySelector('#menu-left').appendChild(saveButton)
+
+  const loadButton = document.createElement('input');
+  loadButton.setAttribute('type', 'button')
+  loadButton.innerHTML = 'Load'
+  loadButton.setAttribute('value', 'Load')
+  
+  loadButton.onclick = () => {
+    console.error('loading preset', presets[0]);
+    viewport.applyViewportSettings(presets[0], {
+      ar: true,
+      scene: true,
+      camera: true,
+      light: true,
+      environment: true,
+      general: true,
+    });
+  }
+  document.querySelector('#menu-left').appendChild(loadButton)
+
 };
-
+const PRESETS_URL = "http://localhost:1337/api/presets"
 const STRAPI_TICKET_URL = "http://localhost:1337/api/shape-diver-configs";
-
+let presets = [];
 // Modify your asynchronous function to call startSession instead of directly creating the session
 (async () => {
-  const response = await axios.get(STRAPI_TICKET_URL);
-
+  //const response = await axios.get(STRAPI_TICKET_URL);
+  const _presets = (await axios.get(PRESETS_URL));
+  presets = _presets.data.data.map(d => d.attributes.json);
   viewport = await SDV.createViewport({
     id: "myViewport",
     canvas: <HTMLCanvasElement>document.getElementById("canvas"),
@@ -411,7 +432,7 @@ const STRAPI_TICKET_URL = "http://localhost:1337/api/shape-diver-configs";
       backgroundColor: "#374151"
     }
   });
-
+  
   // Fetch and start the first session
   fetchConfigs();
 })();
@@ -423,7 +444,6 @@ const fetchConfigs = async () => {
     const response = await axios.get(STRAPI_TICKET_URL);
     if (response.status === 200) {
       tickets = response.data.data;
-      console.log(tickets[currentIndex].attributes.ticket);
       startSession({
         containerId:"canvas",
         modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
@@ -444,7 +464,7 @@ const startSession = async (config) => {
   }
 
   session = await SDV.createSession(config);
-  //resetUI();
+  resetUI();
   createInitialUi();
   viewport.update();
 }
@@ -469,3 +489,8 @@ document.getElementById("nextButton").addEventListener("click", () => {
     waitForOutputs: true
   });
 });
+
+
+
+//
+//Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1NjYxODQ0LCJleHAiOjE2ODgyNTM4NDR9.EE41nNv6oaLTbDzw2H9a932BkYIUVOMuAykaQFQ3wBU

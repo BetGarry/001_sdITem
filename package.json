@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "start": "webpack serve --mode=development"
   },
   "dependencies": {
     "@shapediver/viewer": "^2.9.0",

@@ -21,7 +21,8 @@ export interface IRenderProperties {
   clearAlpha: number,
 	environmentMap: string | string[],
   toneMapping: string,
-  toneMappingExposure: number
+  toneMappingExposure: number,
+  preset: string,
 }
 export interface IRenderSettings {
   properties: IRenderProperties,
@@ -39,13 +40,13 @@ const viewSetup = {
     clearAlpha: 1,
     environmentMap: 'https://3dvestuviniai.lt/assets/images/HDRI/ornament2/',
     toneMapping: 'none',
-    toneMappingExposure: 0.75
+    toneMappingExposure: 0.75,
+    preset: '',
   },
   parameters: {
 }
 };
 
-console.log('hi2');
 
 const diamondSettings = {
   properties: {    
