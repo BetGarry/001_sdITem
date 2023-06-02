@@ -204,7 +204,7 @@ export const createCustomUi = (
       inputElement.setAttribute("max", sliderElement.max + "");
       inputElement.setAttribute("step", sliderElement.step + "");
       const value = menuElement.key
-        ? <number>gemDefinition[menuElement.key]
+        ? (typeof gemDefinition[menuElement.key] != 'undefined'  ? gemDefinition[menuElement.key]  : renderDefinition[menuElement.key])
         : sliderElement.value;
       inputElement.setAttribute("value", value + "");
 
@@ -287,8 +287,11 @@ export const createCustomUi = (
       inputElement.setAttribute("name", "inputElement");
       inputElement.setAttribute("type", "checkbox");
       const value = menuElement.key
-        ? <string>renderDefinition[menuElement.key]
-        : (<IStringElement>menuElement).value;
+        ? (typeof gemDefinition[menuElement.key] != 'undefined'  ? gemDefinition[menuElement.key]  : renderDefinition[menuElement.key])
+        : inputElement.value;
+      if (value) {
+        inputElement.setAttribute('checked', 'checked');
+      }
       //inputElement.setAttribute("value", value === undefined ? "" : value);
       inputElement.classList.value =
         "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
